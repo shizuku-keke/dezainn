@@ -103,7 +103,7 @@
     <div class="container">
         <header class="header">
             <div class="header-left">
-                <button id="back-button" title="戻る">‹</button>
+                <button id="back-button" title="入居者一覧に戻る">‹</button>
                 <h1 id="page-title"></h1>
             </div>
         </header>
@@ -142,7 +142,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 定数と状態変数 ---
     const ADMIN_PASSWORD = '5589374';
-    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NlY2VjZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgMy4xYy4wMyAxLjY1LTEuMzIgMy0yLjkyIDMuMDlDMTMuMDYgOC4wMyAxMyA4IDMgMyAxLjY2IDAgMy0xLjM0IDMtM3MxLjM0LTMgMy0zem0wIDE0LjJjLTIuNSAwLTQuNzEtMS4yOC02LTYuNzYgMC0uNDQuMi0uODUuNS0xLjA5QzcuNTYgMTQuOTQgOS42OSAxNC41IDEyIDE0LjVzNC40NCAuNDQgNS41IDEuODVjLjMuMjMuNS42NC41IDEuMDkgLTMgNS40OC02IDYuNzYtNiA2Ljc2eiIvPjwvc3ZnPg==';
+    const DEFAULT_ICON = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhdW2bw5XFelBMMNMSx4_PST670AxRputfVYU_24fkGYmNeXerrd48CYIgE70vrT711Lwa5Xlgk1DqRSGjxfTZgpq26ky_TV5BazG_rhuMGufQgFFTBJE30qt04EHrTMRe2FqemO0Bk-bM/s170/monster11.png';
     let users = JSON.parse(localStorage.getItem('app_users') || '{}');
     const params = new URLSearchParams(window.location.search);
     const userId = params.get('id');
@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteButton = document.getElementById('delete-button');
 
     // --- 関数定義 ---
+    // ▼▼▼ 修正点: 「戻る」ボタンで必ず入居者一覧(users.html)に遷移するように設定 ▼▼▼
     const redirectToUserList = () => { window.location.href = 'users.html'; };
 
     const renderTags = () => {
@@ -206,8 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tags = new Set(user.tags || []);
         renderTags();
         
-        // 削除ボタンの表示制御
-        const adminPass = sessionStorage.getItem('admin_pass'); // 簡易的な管理者セッション
+        const adminPass = sessionStorage.getItem('admin_pass');
         if (adminPass === ADMIN_PASSWORD) {
             deleteButton.style.display = 'block';
         }
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteButton.addEventListener('click', handleDelete);
     
     document.getElementById('icon-upload-button').addEventListener('click', () => iconFileInput.click());
-    iconPreview.addEventListener('error', () => { iconPreview.src = DEFAULT_ICON; }); // 画像読み込み失敗時のフォールバック
+    iconPreview.addEventListener('error', () => { iconPreview.src = DEFAULT_ICON; });
     iconFileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -274,18 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 tagInput.value = '';
                 renderTags();
             } else {
-                tagInput.value = ''; // 重複 or 空の場合は入力欄をクリア
+                tagInput.value = '';
             }
         }
     });
 
     // --- 初期化処理 ---
     const init = () => {
-        // 編集モードでのみ、削除ボタン表示のために管理者確認を行う
         if (isEditMode && !sessionStorage.getItem('admin_pass')) {
             const input = prompt('管理者確認のため、合言葉を入力してください。\n（削除ボタンを表示するために必要です）');
             if (input === ADMIN_PASSWORD) {
-                sessionStorage.setItem('admin_pass', ADMIN_PASSWORD); // ページ遷移するまで有効
+                sessionStorage.setItem('admin_pass', ADMIN_PASSWORD);
             }
         }
         loadUserData();
