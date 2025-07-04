@@ -39,6 +39,7 @@
             display: flex;
             align-items: center;
         }
+        /* ▼▼▼ 戻るボタンはデフォルトで表示 ▼▼▼ */
         #back-button {
             background: none; border: none; font-size: 30px;
             cursor: pointer; color: var(--primary-color); padding-right: 15px;
@@ -58,7 +59,7 @@
             font-weight: bold;
         }
 
-        /* ▼▼▼ 検索バー ▼▼▼ */
+        /* 検索バー */
         .search-bar {
             width: 100%;
             margin-bottom: 25px;
@@ -144,7 +145,7 @@
         #export-csv-button { background-color: var(--info-color); }
         #csv-file-input { display: none; }
         
-        /* ▼▼▼ 詳細表示モーダル ▼▼▼ */
+        /* 詳細表示モーダル */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -191,7 +192,7 @@
     <div class="container">
         <header class="header">
             <div class="header-left">
-                <button id="back-button" title="戻る">‹</button>
+                <button id="back-button" title="トップに戻る">‹</button>
                 <h1>入居者一覧</h1>
             </div>
             <button id="admin-mode-button">管理者モード</button>
@@ -212,7 +213,7 @@
         </div>
     </div>
 
-    <!-- ▼▼▼ 詳細表示モーダル ▼▼▼ -->
+    <!-- 詳細表示モーダル -->
     <div id="user-modal" class="modal-overlay">
         <div class="modal-content">
             <button id="modal-close-btn">×</button>
@@ -231,11 +232,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 設定と状態変数 ---
     const ADMIN_PASSWORD = '5589374';
-    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NlY2VjZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgMy4xYy4wMyAxLjY1LTEuMzIgMy0yLjkyIDMuMDlDMTMuMDYgOC4wMyAxMyA4IDMgMyAxLjY2IDAgMy0xLjM0IDMtM3MxLjM0LTMgMy0zem0wIDE0LjJjLTIuNSAwLTQuNzEtMS4yOC02LTYuNzYgMC0uNDQuMi0uODUuNS0xLjA5QzcuNTYgMTQuOTQgOS42OSAxNC41IDEyIDE0LjVzNC40NCAuNDQgNS41IDEuODVjLjMuMjMuNS42NC41IDEuMDkgLTMgNS40OC02IDYuNzYtNiA2Ljc2eiIvPjwvc3ZnPg=='; // デフォルトのSVGアイコン
+    const DEFAULT_ICON = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhdW2bw5XFelBMMNMSx4_PST670AxRputfVYU_24fkGYmNeXerrd48CYIgE70vrT711Lwa5Xlgk1DqRSGjxfTZgpq26ky_TV5BazG_rhuMGufQgFFTBJE30qt04EHrTMRe2FqemO0Bk-bM/s170/monster11.png';
     let isAdminMode = false;
     let users = {};
 
     // --- DOM要素 ---
+    const backButton = document.getElementById('back-button');
     const userListContainer = document.getElementById('user-list');
     const adminModeButton = document.getElementById('admin-mode-button');
     const searchInput = document.getElementById('search-input');
@@ -277,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = users[id];
             const card = document.createElement('div');
             card.className = 'user-card';
-            card.dataset.id = id; // クリックイベント用にIDをセット
+            card.dataset.id = id;
             
             card.innerHTML = `
                 <div class="admin-controls">
@@ -291,10 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             
-            // イベントリスナーはここで設定
             card.addEventListener('click', () => showUserDetailModal(id));
             card.querySelector('.edit-btn').addEventListener('click', (e) => {
-                e.stopPropagation(); // 親要素(card)のクリックイベントを発火させない
+                e.stopPropagation();
                 window.location.href = `user_edit.html?id=${id}`;
             });
             card.querySelector('.delete-btn').addEventListener('click', (e) => {
@@ -349,25 +350,31 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- 管理者機能 ---
     const toggleAdminMode = () => {
+        // ▼▼▼ 修正箇所 ▼▼▼
         if (isAdminMode) {
+            // 管理者モードをOFFにする時
             isAdminMode = false;
             document.body.classList.remove('admin-mode');
             adminModeButton.classList.remove('active');
             adminModeButton.textContent = '管理者モード';
+            backButton.style.display = 'block'; // 戻るボタンを再表示
         } else {
+            // 管理者モードをONにする時
             const input = prompt('合言葉を入力してください:');
             if (input === ADMIN_PASSWORD) {
                 isAdminMode = true;
                 document.body.classList.add('admin-mode');
                 adminModeButton.classList.add('active');
                 adminModeButton.textContent = '管理者モード ON';
+                backButton.style.display = 'none'; // 戻るボタンを非表示
             } else if (input !== null && input !== '') {
                 alert('合言葉が違います。');
             }
         }
+        // ▲▲▲ 修正箇所 ▲▲▲
     };
     
-    // --- CSV処理 ---
+    // --- CSV処理 (変更なし) ---
     const exportToCsv = () => {
         if (Object.keys(users).length === 0) { alert('書き出すデータがありません。'); return; }
         const headers = ['id', 'name', 'profile', 'tags', 'icon'];
@@ -376,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = [
                 id,
                 `"${(u.name || '').replace(/"/g, '""')}"`,
-                // [BUGFIX] プロフィール内の改行を '\\n' に置換してCSVの行が壊れないようにする
                 `"${(u.profile || '').replace(/"/g, '""').replace(/\r?\n/g, '\\n')}"`,
                 `"${(u.tags || []).join(';').replace(/"/g, '""')}"`,
                 `"${u.icon || ''}"`
@@ -391,41 +397,31 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         URL.revokeObjectURL(link.href);
     };
-
     const importFromCsv = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const text = e.target.result;
                 const newUsers = {};
-                // [BUGFIX] クォート内の改行を無視するように、単純な行分割ではなく正規表現でCSVレコードを分割する
                 const rows = text.split(/\r?\n/);
                 const headers = rows[0].trim().split(',').map(h => h.replace(/^"|"$/g, ''));
-
                 if (headers[0] !== 'id' || headers[1] !== 'name') throw new Error('CSVヘッダーが正しくありません (id,name,...)');
-
                 for (let i = 1; i < rows.length; i++) {
                     if (rows[i].trim() === '') continue;
-                    // クォートされたフィールド内のカンマを許容する正規表現で列を分割
                     const columns = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                    if (columns.length < headers.length) continue; // 不完全な行はスキップ
-
+                    if (columns.length < headers.length) continue; 
                     const parsedCols = columns.map(col => col.replace(/^"|"$/g, '').replace(/""/g, '"'));
                     const id = parsedCols[0];
                     if (!id) continue;
-                    
                     newUsers[id] = {
                         name: parsedCols[1] || '',
-                        // [BUGFIX] '\\n' を実際の改行文字に戻す
                         profile: (parsedCols[2] || '').replace(/\\n/g, '\n'),
                         tags: parsedCols[3] ? parsedCols[3].split(';').filter(t => t) : [],
                         icon: parsedCols[4] || ''
                     };
                 }
-                
                 if (Object.keys(newUsers).length > 0 && confirm(`${Object.keys(newUsers).length}件のデータで上書きしますか？(現在のデータは消去されます)`)) {
                     users = newUsers;
                     saveUsers();
@@ -437,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 alert('CSVファイルの読み込みに失敗しました。\n' + error.message);
             } finally {
-                event.target.value = ''; // Reset input
+                event.target.value = '';
             }
         };
         reader.readAsText(file, 'UTF-8');
@@ -445,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- イベントリスナー設定 ---
     const setupEventListeners = () => {
-        document.getElementById('back-button').addEventListener('click', () => { window.history.back(); });
+        backButton.addEventListener('click', () => { window.location.href = 'index.html'; }); // 戻るボタンの機能を設定
         adminModeButton.addEventListener('click', toggleAdminMode);
         searchInput.addEventListener('input', (e) => renderUserList(e.target.value));
 
