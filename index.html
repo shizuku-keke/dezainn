@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>がじゅまる - 思い出の会話</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <style>
+        :root {
+            --primary-color: #ff9f43;
+            --secondary-color: #ffffff;
+            --background-color: #f4f6f9; /* より洗練された背景色 */
+            --text-color: #3d4a5c;      /* 落ち着いたテキスト色 */
+            --sub-text-color: #8a95a5;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .header .app-icon { font-size: 48px; margin-bottom: 12px; color: var(--primary-color); }
+        .header h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
+        .header p { font-size: 16px; color: var(--sub-text-color); }
+
+        /* 中央のメインボタン */
+        .main-action {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .main-action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 280px;
+            height: 200px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border-radius: 24px;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(255, 159, 67, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .main-action-button:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(255, 159, 67, 0.4);
+        }
+        .main-action-button .icon { font-size: 52px; margin-bottom: 15px; }
+        .main-action-button .text h2 { font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+        .main-action-button .text p { font-size: 14px; color: rgba(255, 255, 255, 0.9); }
+
+        /* 右下の固定アクションボタン */
+        .fixed-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .capsule-button {
+            display: flex;
+            align-items: center;
+            background-color: var(--secondary-color);
+            border-radius: 50px; /* カプセル型にする */
+            padding: 10px 10px 10px 14px; /* 右側を少し広めに */
+            text-decoration: none;
+            color: var(--text-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .capsule-button:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background-color: #fdfdfd;
+        }
+
+        .capsule-button .label {
+            font-size: 15px;
+            font-weight: 500;
+            margin-right: 12px;
+            color: #5c677d;
+        }
+        .capsule-button .icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--background-color);
+            font-size: 22px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 20px;
+        }
+        .footer p { font-size: 13px; color: var(--sub-text-color); }
+
+        /* スマホ向けの調整 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .header h1 { font-size: 28px; }
+            .main-action-button {
+                width: 90%;
+                height: 180px;
+            }
+            .fixed-actions {
+                bottom: 20px;
+                right: 20px;
+            }
+            /* スマホではテキストを隠し、アイコンのみにする */
+            .capsule-button .label {
+                display: none;
+            }
+            .capsule-button {
+                padding: 10px; /* アイコンのみなのでpaddingを均等に */
+            }
+            .capsule-button .icon-wrapper {
+                background: none; /* 背景色をなくしてアイコンだけにする */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="app-icon">💡</div>
+            <h1>思い出の会話</h1>
+            <p>日々の大切なやりとりを、やさしく記録します</p>
+        </header>
+
+        <main>
+            <div class="main-action">
+                <a href="member_select.html" class="main-action-button">
+                    <div class="icon">💬</div>
+                    <div class="text">
+                        <h2>会話を記録する</h2>
+                        <p>新しい記録を始めます</p>
+                    </div>
+                </a>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>🔒 このアプリの情報は、お使いの端末内にのみ保存され、インターネットに送信されることはありません。</p>
+        </footer>
+    </div>
+
+    <!-- 右下の固定アクションボタン -->
+    <div class="fixed-actions">
+        <a href="history.html" class="capsule-button" title="過去の会話を見る">
+            <span class="label">過去の会話</span>
+            <span class="icon-wrapper">📖</span>
+        </a>
+        <a href="users.html" class="capsule-button" title="入居者プロフィール">
+            <span class="label">プロフィール</span>
+            <span class="icon-wrapper">👤</span>
+        </a>
+    </div>
+
+    <script>
+        // JavaScript部分は変更ありません
+        (function initializeApp() {
+            const usersData = localStorage.getItem('app_users');
+            if (!usersData || usersData === '{}') {
+                const sampleUsers = {
+                    "user_1672531200001": {
+                        "name": "田中 太郎",
+                        "icon": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80",
+                        "profile": "101号室の田中です。\n趣味は読書とガーデニングです。ベランダでハーブを育てています。\nお気軽にお声がけください。",
+                        "tags": ["読書好き", "ガーデニング", "101号室"]
+                    },
+                    "user_1672531200002": {
+                        "name": "伊藤 さくら",
+                        "icon": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80",
+                        "profile": "203号室の伊藤です。猫を2匹飼っています。\n週末はよく近くのカフェに行きます。おすすめの場所があれば教えてください！",
+                        "tags": ["猫好き", "カフェ巡り", "203号室"]
+                    },
+                    "user_1672531200003": {
+                        "name": "佐藤 次郎", "icon": "",
+                        "profile": "305号室の佐藤です。プログラマーをしています。\n夜型の生活なので、日中は静かに過ごしています。",
+                        "tags": ["プログラマー", "夜型", "305号室"]
+                    },
+                    "staff_01": { "name": "スタッフ", "icon": "", "profile": "施設のスタッフです。", "tags": ["職員", "サポート"] }
+                };
+                localStorage.setItem('app_users', JSON.stringify(sampleUsers));
+            }
+        })();
+    </script>
+</body>
+</html>

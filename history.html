@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>過去の会話</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"/>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Arial, "メイリオ", sans-serif; background-color: #f0f2f5; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { display: flex; align-items: center; margin-bottom: 20px; }
+    #back-button { background: none; border: none; font-size: 30px; cursor: pointer; color: #007bff; padding-right: 15px; }
+    h1 { font-size: 24px; color: #333; }
+    
+    /* ▼▼▼ 検索フォームのスタイルを追加 ▼▼▼ */
+    .search-container { margin-bottom: 20px; }
+    #search-input {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box; /* これによりpaddingがwidthに含まれる */
+    }
+    #search-input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    /* ▲▲▲ 検索フォームのスタイルを追加 ▲▲▲ */
+
+    #history-list { display: flex; flex-direction: column; gap: 15px; }
+    .history-item { display: flex; align-items: center; justify-content: space-between; padding: 20px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+    .history-item:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .history-link { display: flex; align-items: center; text-decoration: none; color: inherit; flex-grow: 1; overflow: hidden; }
+    .member-icons { display: flex; flex-shrink: 0; margin-right: 15px; }
+    .member-icon { width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; margin-left: -12px; object-fit: cover; background-color: #ccc; }
+    .member-icon:first-child { margin-left: 0; }
+    .history-info { flex-grow: 1; overflow: hidden; }
+    .history-info .member-names { font-weight: bold; margin-bottom: 5px; }
+    .history-info .last-message-preview {
+      font-size: 14px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .delete-button { background: none; border: none; font-size: 20px; color: #888; cursor: pointer; margin-left: 10px; }
+    .delete-button:hover { color: #dc3545; }
+    #no-history, #no-results { text-align: center; color: #888; margin-top: 40px; } /* ▼▼▼ #no-results を追加 ▼▼▼ */
+    #clear-history-button { margin: 30px auto 0; display: block; padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <button id="back-button">‹</button>
+      <h1>戻る</h1>
+    </header>
+    
+    <!-- ▼▼▼ 検索フォームを追加 ▼▼▼ -->
+    <div class="search-container">
+      <input type="search" id="search-input" placeholder="参加者名やメッセージで検索...">
+    </div>
+    <!-- ▲▲▲ 検索フォームを追加 ▲▲▲ -->
+    
+    <div id="history-list"></div>
+    <p id="no-history" style="display: none;">まだ会話の記録がありません。</p>
+    <!-- ▼▼▼ 検索結果なしメッセージを追加 ▼▼▼ -->
+    <p id="no-results" style="display: none;">一致する会話が見つかりませんでした。</p>
+    <!-- ▲▲▲ 検索結果なしメッセージを追加 ▲▲▲ -->
+
+    <button id="clear-history-button">会話データをすべて削除</button>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let users = {};
+    let chatMeta = {};
+    try {
+        users = JSON.parse(localStorage.getItem('app_users') || '{}');
+        chatMeta = JSON.parse(localStorage.getItem('chat_meta') || '{}');
+    } catch(e) { console.error("データの解析に失敗:", e); alert("データの読み込みに失敗しました。"); return; }
+    
+    const historyList = document.getElementById('history-list');
+    const noHistoryMsg = document.getElementById('no-history');
+    const clearHistoryBtn = document.getElementById('clear-history-button');
+    const searchContainer = document.querySelector('.search-container'); // ▼▼▼ 検索コンテナを取得 ▼▼▼
+
+    document.getElementById('back-button').addEventListener('click', () => { window.location.href = 'index.html'; });
+
+    const conversationList = Object.entries(chatMeta).map(([chatId, meta]) => ({ chatId, ...meta }));
+
+    if (conversationList.length === 0) {
+        noHistoryMsg.style.display = 'block';
+        clearHistoryBtn.style.display = 'none';
+        searchContainer.style.display = 'none'; // ▼▼▼ 会話がない場合は検索バーも非表示に ▼▼▼
+        return;
+    }
+
+    conversationList.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+
+    conversationList.forEach(chatInfo => {
+        const { chatId, members: memberIds, lastUpdated } = chatInfo;
+        const memberNames = memberIds.map(id => users[id]?.name || '不明').join('、');
+        
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.id = `history-item-${chatId}`;
+
+        const link = document.createElement('a');
+        link.className = 'history-link';
+        link.href = `history_view.html?chatId=${chatId}`;
+
+        const iconsDiv = document.createElement('div');
+        iconsDiv.className = 'member-icons';
+        memberIds.slice(0, 4).forEach(id => {
+            const icon = document.createElement('img');
+            icon.className = 'member-icon';
+            icon.src = users[id]?.icon || 'default-icon.png';
+            iconsDiv.appendChild(icon);
+        });
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'history-info';
+        
+        let previewText = 'まだメッセージがありません';
+        const logData = JSON.parse(localStorage.getItem(`chat_log_${chatId}`) || '[]');
+        if (logData.length > 0) {
+            const lastLog = logData[logData.length - 1];
+            if (lastLog.type === 'system') {
+                previewText = `（${lastLog.content}）`;
+            } else if (lastLog.type === 'text') {
+                const speakerName = users[lastLog.speakerId]?.name || '不明';
+                previewText = `${speakerName}: ${lastLog.content}`;
+            }
+        }
+        
+        infoDiv.innerHTML = `
+          <div class="member-names">${memberNames}さんの会話</div>
+          <div class="last-message-preview">${previewText}</div>
+        `;
+
+        // ▼▼▼ 検索用のテキストをdata属性として保存 ▼▼▼
+        const searchableText = `${memberNames}さんの会話 ${previewText}`;
+        item.setAttribute('data-search-text', searchableText);
+        // ▲▲▲ 検索用のテキストをdata属性として保存 ▲▲▲
+
+        link.appendChild(iconsDiv);
+        link.appendChild(infoDiv);
+        item.appendChild(link);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-button';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!confirm(`「${memberNames}さんの会話」を削除しますか？`)) return;
+            localStorage.removeItem(`chat_log_${chatId}`);
+            delete chatMeta[chatId];
+            localStorage.setItem('chat_meta', JSON.stringify(chatMeta));
+            item.remove();
+            // ▼▼▼ フィルタリング状態を更新 ▼▼▼
+            filterConversations(); 
+            if (Object.keys(chatMeta).length === 0) {
+                noHistoryMsg.style.display = 'block';
+                clearHistoryBtn.style.display = 'none';
+                searchContainer.style.display = 'none';
+            }
+        });
+
+        item.appendChild(deleteBtn);
+        historyList.appendChild(item);
+    });
+
+    // ▼▼▼ 検索機能のロジックを追加 ▼▼▼
+    const searchInput = document.getElementById('search-input');
+    const noResultsMsg = document.getElementById('no-results');
+
+    function filterConversations() {
+        const keyword = searchInput.value.toLowerCase().trim();
+        const items = historyList.getElementsByClassName('history-item');
+        let visibleCount = 0;
+
+        Array.from(items).forEach(item => {
+            const searchText = item.getAttribute('data-search-text').toLowerCase();
+            if (searchText.includes(keyword)) {
+                item.style.display = 'flex';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // 検索結果が0件の場合にメッセージを表示
+        noResultsMsg.style.display = (visibleCount === 0 && keyword !== '') ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', filterConversations);
+    // ▲▲▲ 検索機能のロジックを追加 ▲▲▲
+
+    clearHistoryBtn.addEventListener('click', () => {
+        if (!confirm('すべての会話記録を削除します。この操作は元に戻せません。よろしいですか？')) return;
+        Object.keys(chatMeta).forEach(chatId => { localStorage.removeItem(`chat_log_${chatId}`); });
+        localStorage.removeItem('chat_meta');
+        alert('会話データをすべて削除しました。');
+        location.reload();
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>メンバー選択</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Arial, "メイリオ", sans-serif; background-color: #f0f2f5; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; position: relative; }
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    #back-button { background: none; border: none; font-size: 30px; cursor: pointer; color: #007bff; padding-right: 15px; line-height: 1; padding-top: 0; padding-bottom: 0; margin: 0; }
+    .back-label { font-size: 24px; color: #007bff; font-weight: normal; line-height: 1; }
+    .select-message { font-size: 24px; color: #333; text-align: center; margin: 20px 0 30px; font-weight: normal; line-height: 1.3; }
+    #search-box-wrapper { margin-bottom: 20px; }
+    #search-box { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+    #member-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 100px; }
+    .member-card { text-align: center; cursor: pointer; padding: 10px; border-radius: 12px; border: 3px solid transparent; transition: all 0.2s; }
+    .member-icon { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; }
+    .member-name { font-weight: bold; }
+    .member-card.selected { border-color: #007bff; background-color: #e7f1ff; }
+    .member-card.disabled { opacity: 0.6; cursor: not-allowed; background-color: #f0f2f5; border-color: #ccc; }
+    .footer { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; padding: 20px; border-top: 1px solid #ddd; text-align: center; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); }
+    #start-chat-button { width: 90%; max-width: 500px; padding: 15px; font-size: 20px; font-weight: bold; color: white; background-color: #28a745; border: none; border-radius: 12px; cursor: pointer; }
+    #start-chat-button:disabled { background-color: #9cdcb0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <button id="back-button">‹</button>
+      <span class="back-label">戻る</span>
+    </header>
+    <h1 class="select-message"></h1>
+    <div id="search-box-wrapper">
+      <input type="search" id="search-box" placeholder="名前で探す..." />
+    </div>
+    <div id="member-list"></div>
+  </div>
+  <div class="footer">
+    <button id="start-chat-button" disabled></button>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ユーティリティ: ユニークなChat IDを生成する関数
+    const generateChatId = () => 'chat_' + Date.now() + Math.random().toString(36).substr(2, 9);
+
+    // 1. 要素とデータの取得
+    let users = {};
+    try {
+        users = JSON.parse(localStorage.getItem('app_users') || '{}');
+    } catch (e) {
+        console.error("localStorageの'app_users'の解析に失敗しました:", e);
+        alert("ユーザーデータの読み込みに失敗しました。");
+        return;
+    }
+
+    const memberList = document.getElementById('member-list');
+    const startChatButton = document.getElementById('start-chat-button');
+    const searchBox = document.getElementById('search-box');
+    const titleMessage = document.querySelector('h1.select-message');
+    const backButton = document.getElementById('back-button');
+    const backLabel = document.querySelector('.back-label');
+    const memberCards = [];
+
+    // 2. URLパラメータからモードを判定
+    const params = new URLSearchParams(window.location.search);
+    const chatId = params.get('chatId');
+    const isAddMode = !!chatId; // chatIdがあれば追加モード、なければ新規モード
+
+    // 3. 状態の初期化
+    const chatMeta = JSON.parse(localStorage.getItem('chat_meta') || '{}');
+    const currentMemberIds = isAddMode ? (chatMeta[chatId]?.members || []) : [];
+    const selectedMemberIds = new Set(currentMemberIds);
+
+    // 4. UI更新ロジック
+    const updateUiState = () => {
+        const memberCountSpan = document.getElementById('member-count');
+        if (!memberCountSpan) return;
+
+        let buttonEnabled = false;
+        if (isAddMode) {
+            const newMembersCount = selectedMemberIds.size - currentMemberIds.length;
+            memberCountSpan.textContent = newMembersCount;
+            buttonEnabled = newMembersCount > 0;
+        } else {
+            memberCountSpan.textContent = selectedMemberIds.size;
+            buttonEnabled = selectedMemberIds.size >= 2;
+        }
+        startChatButton.disabled = !buttonEnabled;
+    };
+
+    // 5. モードに応じた画面初期設定
+    if (isAddMode) {
+        titleMessage.innerHTML = `追加するメンバーを選んでください（<span id="member-count">0</span>人選択中）`;
+        startChatButton.textContent = 'このメンバーを追加して更新';
+        backLabel.textContent = 'チャットに戻る';
+        backButton.addEventListener('click', () => window.history.back());
+    } else {
+        titleMessage.innerHTML = `会話に参加する人を選んでください（<span id="member-count">0</span>人選択中）`;
+        startChatButton.textContent = 'このメンバーで会話をはじめる';
+        backLabel.textContent = '戻る';
+        backButton.addEventListener('click', () => window.location.href = 'index.html');
+    }
+
+    // 6. メンバーリストの生成
+    Object.entries(users).forEach(([id, user]) => {
+        const card = document.createElement('div');
+        card.className = 'member-card';
+        card.dataset.userId = id;
+        card.innerHTML = `<img src="${user.icon}" alt="${user.name}" class="member-icon" /><div class="member-name">${user.name}</div>`;
+
+        if (isAddMode && currentMemberIds.includes(id)) {
+            card.classList.add('selected', 'disabled');
+        } else {
+            card.addEventListener('click', () => {
+                card.classList.toggle('selected');
+                if (card.classList.contains('selected')) {
+                    selectedMemberIds.add(id);
+                } else {
+                    selectedMemberIds.delete(id);
+                }
+                updateUiState();
+            });
+        }
+        memberList.appendChild(card);
+        memberCards.push(card);
+    });
+
+    // 7. イベントリスナーの設定
+    searchBox.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        memberCards.forEach(card => {
+            const name = card.querySelector('.member-name').textContent.toLowerCase();
+            card.style.display = name.includes(query) ? '' : 'none';
+        });
+    });
+
+    startChatButton.addEventListener('click', () => {
+        if (startChatButton.disabled) return;
+
+        if (isAddMode) {
+            // 追加モード: 既存のチャット情報を更新
+            const newMemberIds = Array.from(selectedMemberIds).filter(id => !currentMemberIds.includes(id));
+            chatMeta[chatId].members = Array.from(selectedMemberIds);
+            chatMeta[chatId].lastUpdated = new Date().toISOString();
+            localStorage.setItem('chat_meta', JSON.stringify(chatMeta));
+            window.location.href = `chat.html?chatId=${chatId}&addedMembers=${newMemberIds.join(',')}`;
+        } else {
+            // 新規モード: 新しいチャットを作成
+            const newChatId = generateChatId();
+            chatMeta[newChatId] = {
+                members: Array.from(selectedMemberIds),
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem('chat_meta', JSON.stringify(chatMeta));
+            window.location.href = `chat.html?chatId=${newChatId}`;
+        }
+    });
+
+    // 8. UIの初回更新
+    updateUiState();
+});
+</script>
+</body>
+</html>

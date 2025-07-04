@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入居者情報の編集</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Arial, "メイリオ", sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px; margin: 0 auto; background-color: #fff;
+            padding: 30px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .header-left { display: flex; align-items: center; }
+        #back-button {
+            background: none; border: none; font-size: 30px;
+            cursor: pointer; color: var(--primary-color); padding-right: 15px;
+        }
+        h1 { font-size: 24px; color: #333; font-weight: bold; }
+        
+        .form-group { margin-bottom: 25px; }
+        .form-group label {
+            display: block; font-weight: bold; margin-bottom: 8px; color: #555;
+        }
+        .form-group input[type="text"], .form-group textarea {
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 16px; box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input[type="text"]:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+
+        #icon-preview-wrapper { display: flex; align-items: center; gap: 20px; }
+        #icon-preview {
+            width: 80px; height: 80px; border-radius: 50%;
+            object-fit: cover; background-color: #eee;
+            border: 3px solid #f0f0f0;
+        }
+        #icon-upload-button {
+            padding: 10px 15px; background-color: #f0f0f0;
+            border: 1px solid #ddd; border-radius: 8px; cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #icon-upload-button:hover { background-color: #e2e6ea; }
+        #icon-file-input { display: none; }
+
+        #tags-container {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-top: 10px; padding: 10px; border: 1px solid #ddd;
+            border-radius: 8px; min-height: 40px;
+            cursor: text; /* コンテナ全体をクリックして入力できるように */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #tags-container:focus-within { /* 入力欄にフォーカスがある場合にコンテナのスタイルを変更 */
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+        .tag-item {
+            background-color: var(--primary-color); color: white;
+            padding: 5px 12px; border-radius: 15px; font-size: 14px;
+            display: flex; align-items: center;
+        }
+        .tag-item .remove-tag {
+            background: none; border: none; color: white; margin-left: 8px;
+            font-size: 16px; cursor: pointer; padding: 0; line-height: 1; opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .tag-item .remove-tag:hover { opacity: 1; }
+        #tag-input { border: none; outline: none; flex-grow: 1; font-size: 16px; min-width: 120px; }
+
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .action-button {
+            flex-grow: 1; padding: 15px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 8px; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .action-button:hover { opacity: 0.85; }
+        #save-button { color: white; background-color: var(--success-color); }
+        #delete-button {
+            display: none; /* 初期状態は非表示 */
+            color: white; background-color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <button id="back-button" title="戻る">‹</button>
+                <h1 id="page-title"></h1>
+            </div>
+        </header>
+
+        <form id="user-form">
+            <div class="form-group">
+                <label for="name-input">名前 <span style="color:red;">*</span></label>
+                <input type="text" id="name-input" required>
+            </div>
+            <div class="form-group">
+                <label>アイコン</label>
+                <div id="icon-preview-wrapper">
+                    <img id="icon-preview" alt="アイコンプレビュー">
+                    <button type="button" id="icon-upload-button">画像を選択</button>
+                    <input type="file" id="icon-file-input" accept="image/*">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="profile-input">プロフィール</label>
+                <textarea id="profile-input" placeholder="自己紹介や特記事項などを入力"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="tag-input">タグ (入力後Enterで追加)</label>
+                <div id="tags-container">
+                    <input type="text" id="tag-input" placeholder="タグを追加...">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" id="save-button" class="action-button">保存する</button>
+                <button type="button" id="delete-button" class="action-button">削除する</button>
+            </div>
+        </form>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 定数と状態変数 ---
+    const ADMIN_PASSWORD = '5589374';
+    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NlY2VjZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgM2MxLjY2IDAgMyAxLjM0IDMgMy4xYy4wMyAxLjY1LTEuMzIgMy0yLjkyIDMuMDlDMTMuMDYgOC4wMyAxMyA4IDMgMyAxLjY2IDAgMy0xLjM0IDMtM3MxLjM0LTMgMy0zem0wIDE0LjJjLTIuNSAwLTQuNzEtMS4yOC02LTYuNzYgMC0uNDQuMi0uODUuNS0xLjA5QzcuNTYgMTQuOTQgOS42OSAxNC41IDEyIDE0LjVzNC40NCAuNDQgNS41IDEuODVjLjMuMjMuNS42NC41IDEuMDkgLTMgNS40OC02IDYuNzYtNiA2Ljc2eiIvPjwvc3ZnPg==';
+    let users = JSON.parse(localStorage.getItem('app_users') || '{}');
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('id');
+    const isEditMode = !!userId;
+    let iconDataUrl = DEFAULT_ICON;
+    let tags = new Set();
+
+    // --- DOM要素 ---
+    const pageTitle = document.getElementById('page-title');
+    const nameInput = document.getElementById('name-input');
+    const iconPreview = document.getElementById('icon-preview');
+    const iconFileInput = document.getElementById('icon-file-input');
+    const profileInput = document.getElementById('profile-input');
+    const tagsContainer = document.getElementById('tags-container');
+    const tagInput = document.getElementById('tag-input');
+    const userForm = document.getElementById('user-form');
+    const deleteButton = document.getElementById('delete-button');
+
+    // --- 関数定義 ---
+    const redirectToUserList = () => { window.location.href = 'users.html'; };
+
+    const renderTags = () => {
+        document.querySelectorAll('.tag-item').forEach(el => el.remove());
+        tags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.textContent = tag;
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-tag';
+            removeBtn.innerHTML = '×';
+            removeBtn.title = 'タグを削除';
+            removeBtn.onclick = () => {
+                tags.delete(tag);
+                renderTags();
+            };
+            tagElement.appendChild(removeBtn);
+            tagsContainer.insertBefore(tagElement, tagInput);
+        });
+    };
+
+    const loadUserData = () => {
+        if (!isEditMode) {
+            pageTitle.textContent = '新規入居者の追加';
+            iconPreview.src = DEFAULT_ICON;
+            return;
+        }
+        
+        if (!users[userId]) {
+            alert('指定されたユーザーが見つかりません。');
+            redirectToUserList();
+            return;
+        }
+
+        pageTitle.textContent = '入居者情報の編集';
+        const user = users[userId];
+        nameInput.value = user.name || '';
+        profileInput.value = user.profile || '';
+        iconDataUrl = user.icon || DEFAULT_ICON;
+        iconPreview.src = iconDataUrl;
+        tags = new Set(user.tags || []);
+        renderTags();
+        
+        // 削除ボタンの表示制御
+        const adminPass = sessionStorage.getItem('admin_pass'); // 簡易的な管理者セッション
+        if (adminPass === ADMIN_PASSWORD) {
+            deleteButton.style.display = 'block';
+        }
+    };
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        const newName = nameInput.value.trim();
+        if (!newName) {
+            alert('名前は必須です。');
+            nameInput.focus();
+            return;
+        }
+
+        const newUserId = isEditMode ? userId : 'user_' + Date.now();
+        users[newUserId] = {
+            name: newName,
+            icon: iconDataUrl,
+            profile: profileInput.value.trim(),
+            tags: Array.from(tags)
+        };
+
+        localStorage.setItem('app_users', JSON.stringify(users));
+        alert('保存しました。');
+        redirectToUserList();
+    };
+
+    const handleDelete = () => {
+        if (!isEditMode || !users[userId]) return;
+        
+        if (confirm(`「${users[userId].name}」さんの情報を完全に削除します。\nよろしいですか？`)) {
+            delete users[userId];
+            localStorage.setItem('app_users', JSON.stringify(users));
+            alert('削除しました。');
+            redirectToUserList();
+        }
+    };
+    
+    // --- イベントリスナー設定 ---
+    document.getElementById('back-button').addEventListener('click', redirectToUserList);
+    userForm.addEventListener('submit', handleFormSubmit);
+    deleteButton.addEventListener('click', handleDelete);
+    
+    document.getElementById('icon-upload-button').addEventListener('click', () => iconFileInput.click());
+    iconPreview.addEventListener('error', () => { iconPreview.src = DEFAULT_ICON; }); // 画像読み込み失敗時のフォールバック
+    iconFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            iconDataUrl = e.target.result;
+            iconPreview.src = iconDataUrl;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    tagsContainer.addEventListener('click', () => tagInput.focus());
+    tagInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const tagName = tagInput.value.trim();
+            if (tagName && !tags.has(tagName)) {
+                tags.add(tagName);
+                tagInput.value = '';
+                renderTags();
+            } else {
+                tagInput.value = ''; // 重複 or 空の場合は入力欄をクリア
+            }
+        }
+    });
+
+    // --- 初期化処理 ---
+    const init = () => {
+        // 編集モードでのみ、削除ボタン表示のために管理者確認を行う
+        if (isEditMode && !sessionStorage.getItem('admin_pass')) {
+            const input = prompt('管理者確認のため、合言葉を入力してください。\n（削除ボタンを表示するために必要です）');
+            if (input === ADMIN_PASSWORD) {
+                sessionStorage.setItem('admin_pass', ADMIN_PASSWORD); // ページ遷移するまで有効
+            }
+        }
+        loadUserData();
+    };
+    
+    init();
+});
+</script>
+</body>
+</html>
