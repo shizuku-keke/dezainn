@@ -148,6 +148,7 @@
             <p>日々の大切なやりとりを、やさしく記録します</p>
         </header>
 
+        <!-- ▼▼▼ 変更箇所1 ▼▼▼ -->
         <main>
             <div class="main-action">
                 <a href="member_select.html" class="main-action-button">
@@ -159,12 +160,14 @@
                 </a>
             </div>
         </main>
+        <!-- ▲▲▲ 変更箇所1 ▲▲▲ -->
 
         <footer class="footer">
             <p>🔒 このアプリの情報は、お使いの端末内にのみ保存され、インターネットに送信されることはありません。</p>
         </footer>
     </div>
 
+    <!-- ▼▼▼ 変更箇所2 ▼▼▼ -->
     <!-- 右下の固定アクションボタン -->
     <div class="fixed-actions">
         <a href="history.html" class="capsule-button" title="過去の会話を見る">
@@ -176,9 +179,10 @@
             <span class="icon-wrapper">👤</span>
         </a>
     </div>
+    <!-- ▲▲▲ 変更箇所2 ▲▲▲ -->
 
     <script>
-        // JavaScript部分は変更ありません
+        // JavaScript部分は変更ありません（新のコードのままです）
         (function initializeApp() {
             const usersData = localStorage.getItem('app_users');
             if (!usersData || usersData === '{}') {
