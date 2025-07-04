@@ -15,11 +15,39 @@
     #search-box-wrapper { margin-bottom: 20px; }
     #search-box { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
     #member-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 100px; }
-    .member-card { text-align: center; cursor: pointer; padding: 10px; border-radius: 12px; border: 3px solid transparent; transition: all 0.2s; }
+
+    /* ▼▼▼ ここから変更 ▼▼▼ */
+    .member-card {
+      background-color: #ffffff; /* 白い背景を追加 */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); /* 影を追加 */
+      text-align: center;
+      cursor: pointer;
+      padding: 15px 10px;
+      border-radius: 12px;
+      border: 2px solid #ddd; /* 常に表示される枠線を追加 */
+      transition: all 0.2s, transform 0.2s;
+      width: 110px; /* カードの幅を固定して整列しやすくする */
+      box-sizing: border-box;
+    }
+    .member-card:not(.disabled):hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .member-card.selected {
+      border-color: #007bff;
+      background-color: #e7f1ff;
+    }
+    .member-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: #f0f2f5;
+      border-color: #ccc;
+    }
+    /* ▲▲▲ ここまで変更 ▲▲▲ */
+
     .member-icon { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; }
-    .member-name { font-weight: bold; }
-    .member-card.selected { border-color: #007bff; background-color: #e7f1ff; }
-    .member-card.disabled { opacity: 0.6; cursor: not-allowed; background-color: #f0f2f5; border-color: #ccc; }
+    .member-name { font-weight: bold; font-size: 14px; } /* 名前が見切れないように調整 */
+
     .footer { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; padding: 20px; border-top: 1px solid #ddd; text-align: center; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); }
     #start-chat-button { width: 90%; max-width: 500px; padding: 15px; font-size: 20px; font-weight: bold; color: white; background-color: #28a745; border: none; border-radius: 12px; cursor: pointer; }
     #start-chat-button:disabled { background-color: #9cdcb0; }
@@ -109,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'member-card';
         card.dataset.userId = id;
-        card.innerHTML = `<img src="${user.icon}" alt="${user.name}" class="member-icon" /><div class="member-name">${user.name}</div>`;
+        // ユーザーアイコンがない場合はデフォルトアイコンを表示
+        const iconSrc = user.icon || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+        card.innerHTML = `<img src="${iconSrc}" alt="${user.name}" class="member-icon" /><div class="member-name">${user.name}</div>`;
 
         if (isAddMode && currentMemberIds.includes(id)) {
             card.classList.add('selected', 'disabled');
