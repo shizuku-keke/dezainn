@@ -6,7 +6,6 @@
     <title>入居者情報システム</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <style>
-        /* 全体・基本スタイル */
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
@@ -16,76 +15,31 @@
             --gray: #6c757d;
             --dark-gray: #343a40;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Arial, "メイリオ", sans-serif;
-            background-color: #f0f2f5;
-            color: var(--dark-gray);
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* ヘッダー */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-        /* ▼▼▼ 戻るボタンはデフォルトで表示 ▼▼▼ */
-        #back-button {
-            background: none; border: none; font-size: 30px;
-            cursor: pointer; color: var(--primary-color); padding-right: 15px;
-        }
-        h1 {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        #admin-mode-button {
-            padding: 10px 20px; font-size: 16px; cursor: pointer;
-            border-radius: 8px; border: 1px solid var(--primary-color);
-            background-color: #fff; color: var(--primary-color);
-            transition: all 0.2s;
-        }
-        #admin-mode-button.active {
-            background-color: var(--primary-color); color: #fff;
-            font-weight: bold;
-        }
-
-        /* 検索バー */
-        .search-bar {
-            width: 100%;
-            margin-bottom: 25px;
-        }
-        #search-input {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-
-        /* ユーザーリスト */
-        #user-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 20px;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", Arial, "メイリオ", sans-serif; background-color: #f0f2f5; color: var(--dark-gray); }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; }
+        .header-left { display: flex; align-items: center; }
+        #back-button { background: none; border: none; font-size: 30px; cursor: pointer; color: var(--primary-color); padding-right: 15px; }
+        h1 { font-size: 24px; font-weight: bold; }
+        #admin-mode-button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 8px; border: 1px solid var(--primary-color); background-color: #fff; color: var(--primary-color); transition: all 0.2s; }
+        #admin-mode-button.active { background-color: var(--primary-color); color: #fff; font-weight: bold; }
+        .search-bar { width: 100%; margin-bottom: 25px; }
+        #search-input { width: 100%; padding: 12px 15px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #user-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
+        
+        /* ▼▼▼ 変更箇所: カードのスタイルを全面的に見直し ▼▼▼ */
         .user-card {
-            position: relative; display: flex; flex-direction: column;
-            align-items: center; padding: 20px 10px;
-            background-color: #ffffff; border-radius: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+            background-color: #ffffff;
+            border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 230px; /* カードの高さを揃えるための最小値を設定 */
         }
         .user-card:hover {
             transform: translateY(-4px);
@@ -93,99 +47,67 @@
         }
         .user-icon {
             width: 80px; height: 80px; border-radius: 50%;
-            object-fit: cover; margin-bottom: 12px;
+            object-fit: cover; margin-bottom: 10px;
             border: 3px solid #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .user-text-content {
+            flex-grow: 1; /* タグが増えても他の要素が上に詰まるように */
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-role {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
         .user-name {
-            font-size: 16px; font-weight: bold; text-align: center;
-            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .user-furigana {
+            font-size: 11px;
+            color: var(--gray);
+            margin-bottom: 10px;
         }
         .user-tags-container {
             display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 4px; width: 100%; height: 42px;
-            overflow: hidden; align-content: flex-start;
+            gap: 4px;
+            width: 100%;
+            /* heightの固定を解除し、自然に広がるようにする */
         }
         .user-tag {
             background-color: #e9ecef; color: #495057;
             padding: 3px 10px; border-radius: 12px; font-size: 12px;
             white-space: nowrap;
         }
+        /* ▲▲▲ 変更箇所 ▲▲▲ */
 
-        /* 状態表示 */
-        #status-message {
-            text-align: center; color: var(--gray);
-            margin-top: 40px; font-size: 18px;
-        }
-
-        /* 管理者モード用 */
-        .admin-controls {
-            display: none; position: absolute; top: 5px; right: 5px;
-        }
-        .admin-controls button {
-            background: rgba(255,255,255,0.7); border: none; font-size: 18px;
-            cursor: pointer; padding: 5px; border-radius: 50%;
-            width: 30px; height: 30px; line-height: 1;
-        }
+        #status-message { text-align: center; color: var(--gray); margin-top: 40px; font-size: 18px; }
+        .admin-controls { display: none; position: absolute; top: 5px; right: 5px; }
+        .admin-controls button { background: rgba(255,255,255,0.7); border: none; font-size: 18px; cursor: pointer; padding: 5px; border-radius: 50%; width: 30px; height: 30px; line-height: 1; }
         body.admin-mode .user-card:hover .admin-controls { display: block; }
-
-        #admin-menu {
-            display: none; margin-top: 40px; text-align: center;
-            border-top: 1px solid #ddd; padding-top: 30px;
-        }
+        #admin-menu { display: none; margin-top: 40px; text-align: center; border-top: 1px solid #ddd; padding-top: 30px; }
         body.admin-mode #admin-menu { display: block; }
-        .admin-button {
-            padding: 12px 25px; font-size: 16px; font-weight: bold;
-            cursor: pointer; border-radius: 8px; border: none;
-            color: white; margin: 5px; transition: opacity 0.2s;
-        }
+        .admin-button { padding: 12px 25px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; color: white; margin: 5px; transition: opacity 0.2s; }
         .admin-button:hover { opacity: 0.85; }
         #add-user-button { background-color: var(--success-color); }
         #import-csv-button { background-color: var(--warning-color); color: var(--dark-gray); }
         #export-csv-button { background-color: var(--info-color); }
         #csv-file-input { display: none; }
-        
-        /* 詳細表示モーダル */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: #fff; padding: 30px; border-radius: 16px;
-            width: 90%; max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative; text-align: center;
-        }
-        #modal-close-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; font-size: 24px;
-            cursor: pointer; color: var(--gray);
-        }
-        #modal-icon {
-            width: 120px; height: 120px; border-radius: 50%;
-            object-fit: cover; margin-bottom: 20px;
-            border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        #modal-name {
-            font-size: 28px; font-weight: bold; margin-bottom: 15px;
-        }
-        #modal-profile {
-            font-size: 16px; color: var(--gray);
-            margin-bottom: 25px; white-space: pre-wrap;
-            text-align: left; max-height: 150px; overflow-y: auto;
-            background-color: var(--light-gray); padding: 15px; border-radius: 8px;
-        }
-        #modal-tags {
-            display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 8px;
-        }
-        #modal-admin-actions {
-            margin-top: 30px; border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; text-align: center; }
+        #modal-close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray); }
+        #modal-icon { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        #modal-furigana { font-size: 14px; color: var(--gray); margin-bottom: 4px; }
+        #modal-name { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
+        #modal-profile { font-size: 16px; color: var(--gray); margin-bottom: 25px; white-space: pre-wrap; text-align: left; max-height: 150px; overflow-y: auto; background-color: var(--light-gray); padding: 15px; border-radius: 8px; }
+        #modal-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        #modal-admin-actions { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -197,14 +119,11 @@
             </div>
             <button id="admin-mode-button">管理者モード</button>
         </header>
-
         <div class="search-bar">
-            <input type="text" id="search-input" placeholder="名前やタグで検索...">
+            <input type="text" id="search-input" placeholder="名前、フリガナ、役割、タグで検索...">
         </div>
-
         <div id="user-list"></div>
         <p id="status-message"></p>
-
         <div id="admin-menu">
             <button id="add-user-button" class="admin-button">＋ 新規追加</button>
             <button id="import-csv-button" class="admin-button">CSVから読み込む</button>
@@ -212,12 +131,11 @@
             <input type="file" id="csv-file-input" accept=".csv">
         </div>
     </div>
-
-    <!-- 詳細表示モーダル -->
     <div id="user-modal" class="modal-overlay">
         <div class="modal-content">
             <button id="modal-close-btn">×</button>
             <img id="modal-icon" src="" alt="icon">
+            <p id="modal-furigana"></p>
             <h2 id="modal-name"></h2>
             <p id="modal-profile"></p>
             <div id="modal-tags"></div>
@@ -227,16 +145,13 @@
             </div>
         </div>
     </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 設定と状態変数 ---
     const ADMIN_PASSWORD = '5589374';
     const DEFAULT_ICON = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhdW2bw5XFelBMMNMSx4_PST670AxRputfVYU_24fkGYmNeXerrd48CYIgE70vrT711Lwa5Xlgk1DqRSGjxfTZgpq26ky_TV5BazG_rhuMGufQgFFTBJE30qt04EHrTMRe2FqemO0Bk-bM/s170/monster11.png';
     let isAdminMode = false;
     let users = {};
 
-    // --- DOM要素 ---
     const backButton = document.getElementById('back-button');
     const userListContainer = document.getElementById('user-list');
     const adminModeButton = document.getElementById('admin-mode-button');
@@ -244,15 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('status-message');
     const modal = document.getElementById('user-modal');
     
-    // --- データ操作 ---
-    const loadUsers = () => {
-        users = JSON.parse(localStorage.getItem('app_users') || '{}');
-    };
-    const saveUsers = () => {
-        localStorage.setItem('app_users', JSON.stringify(users));
-    };
+    const loadUsers = () => { users = JSON.parse(localStorage.getItem('app_users') || '{}'); };
+    const saveUsers = () => { localStorage.setItem('app_users', JSON.stringify(users)); };
 
-    // --- 画面描画 ---
     const renderUserList = (filterText = '') => {
         userListContainer.innerHTML = '';
         const lowerCaseFilter = filterText.toLowerCase();
@@ -261,21 +170,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = users[id];
             if (!user.name) return false;
             const nameMatch = user.name.toLowerCase().includes(lowerCaseFilter);
+            const furiganaMatch = user.furigana && user.furigana.toLowerCase().includes(lowerCaseFilter);
+            const roleMatch = user.role && user.role.toLowerCase().includes(lowerCaseFilter);
             const tagMatch = user.tags && user.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter));
-            return nameMatch || tagMatch;
+            return nameMatch || furiganaMatch || roleMatch || tagMatch;
         });
 
-        if (Object.keys(users).length === 0) {
-            statusMessage.textContent = 'まだ入居者情報が登録されていません。';
-            statusMessage.style.display = 'block';
-        } else if (filteredUserIds.length === 0) {
-            statusMessage.textContent = '該当する入居者が見つかりません。';
-            statusMessage.style.display = 'block';
-        } else {
-            statusMessage.style.display = 'none';
-        }
+        if (Object.keys(users).length === 0) { statusMessage.textContent = 'まだ入居者情報が登録されていません。'; statusMessage.style.display = 'block'; }
+        else if (filteredUserIds.length === 0) { statusMessage.textContent = '該当する入居者が見つかりません。'; statusMessage.style.display = 'block'; }
+        else { statusMessage.style.display = 'none'; }
         
-        filteredUserIds.sort((a, b) => users[a].name.localeCompare(users[b].name, 'ja')).forEach(id => {
+        filteredUserIds.sort((a, b) => {
+            const userA = users[a]; const userB = users[b];
+            const compareA = userA.furigana || userA.name; const compareB = userB.furigana || userB.name;
+            return compareA.localeCompare(compareB, 'ja');
+        }).forEach(id => {
             const user = users[id];
             const card = document.createElement('div');
             card.className = 'user-card';
@@ -287,184 +196,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="delete-btn" title="削除">🗑️</button>
                 </div>
                 <img src="${user.icon || DEFAULT_ICON}" alt="${user.name}" class="user-icon" onerror="this.src='${DEFAULT_ICON}'">
-                <div class="user-name">${user.name}</div>
+                <div class="user-text-content">
+                    <div class="user-role">${user.role || ' '}</div>
+                    <div class="user-name">${user.name}</div>
+                    <div class="user-furigana">${user.furigana || ' '}</div>
+                </div>
                 <div class="user-tags-container">
                     ${(user.tags || []).map(tag => `<span class="user-tag">${tag}</span>`).join('')}
                 </div>
             `;
             
             card.addEventListener('click', () => showUserDetailModal(id));
-            card.querySelector('.edit-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                window.location.href = `user_edit.html?id=${id}`;
-            });
-            card.querySelector('.delete-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteUser(id, user.name);
-            });
+            card.querySelector('.edit-btn').addEventListener('click', (e) => { e.stopPropagation(); window.location.href = `user_edit.html?id=${id}`; });
+            card.querySelector('.delete-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteUser(id, user.name); });
             
             userListContainer.appendChild(card);
         });
     };
 
-    // --- 詳細モーダル処理 ---
     const showUserDetailModal = (id) => {
-        const user = users[id];
-        if (!user) return;
-        
+        const user = users[id]; if (!user) return;
         document.getElementById('modal-icon').src = user.icon || DEFAULT_ICON;
         document.getElementById('modal-icon').onerror = () => { document.getElementById('modal-icon').src = DEFAULT_ICON; };
+        document.getElementById('modal-furigana').textContent = user.furigana || '';
         document.getElementById('modal-name').textContent = user.name;
         document.getElementById('modal-profile').textContent = user.profile || 'プロフィール情報はありません。';
-        
         const tagsContainer = document.getElementById('modal-tags');
-        tagsContainer.innerHTML = (user.tags || []).map(tag => `<span class="user-tag">${tag}</span>`).join('');
-        
+        const allInfo = [];
+        if (user.role) { allInfo.push(user.role); }
+        if (user.tags) { allInfo.push(...user.tags); }
+        tagsContainer.innerHTML = allInfo.map(tag => `<span class="user-tag">${tag}</span>`).join('');
         const adminActions = document.getElementById('modal-admin-actions');
         if (isAdminMode) {
             adminActions.style.display = 'block';
             document.getElementById('modal-edit-btn').onclick = () => { window.location.href = `user_edit.html?id=${id}`; };
-            document.getElementById('modal-delete-btn').onclick = () => {
-                hideUserDetailModal();
-                deleteUser(id, user.name);
-            };
-        } else {
-            adminActions.style.display = 'none';
-        }
-        
+            document.getElementById('modal-delete-btn').onclick = () => { hideUserDetailModal(); deleteUser(id, user.name); };
+        } else { adminActions.style.display = 'none'; }
         modal.style.display = 'flex';
     };
-
-    const hideUserDetailModal = () => {
-        modal.style.display = 'none';
-    };
-
-    // --- ユーザー操作 ---
-    const deleteUser = (id, name) => {
-        if (confirm(`「${name}」さんの情報を削除しますか？この操作は元に戻せません。`)) {
-            delete users[id];
-            saveUsers();
-            renderUserList(searchInput.value);
-        }
-    };
-    
-    // --- 管理者機能 ---
-    const toggleAdminMode = () => {
-        // ▼▼▼ 修正箇所 ▼▼▼
-        if (isAdminMode) {
-            // 管理者モードをOFFにする時
-            isAdminMode = false;
-            document.body.classList.remove('admin-mode');
-            adminModeButton.classList.remove('active');
-            adminModeButton.textContent = '管理者モード';
-            backButton.style.display = 'block'; // 戻るボタンを再表示
-        } else {
-            // 管理者モードをONにする時
-            const input = prompt('合言葉を入力してください:');
-            if (input === ADMIN_PASSWORD) {
-                isAdminMode = true;
-                document.body.classList.add('admin-mode');
-                adminModeButton.classList.add('active');
-                adminModeButton.textContent = '管理者モード ON';
-                backButton.style.display = 'none'; // 戻るボタンを非表示
-            } else if (input !== null && input !== '') {
-                alert('合言葉が違います。');
-            }
-        }
-        // ▲▲▲ 修正箇所 ▲▲▲
-    };
-    
-    // --- CSV処理 (変更なし) ---
-    const exportToCsv = () => {
-        if (Object.keys(users).length === 0) { alert('書き出すデータがありません。'); return; }
-        const headers = ['id', 'name', 'profile', 'tags', 'icon'];
-        let csvContent = headers.join(',') + '\n';
-        Object.entries(users).forEach(([id, u]) => {
-            const row = [
-                id,
-                `"${(u.name || '').replace(/"/g, '""')}"`,
-                `"${(u.profile || '').replace(/"/g, '""').replace(/\r?\n/g, '\\n')}"`,
-                `"${(u.tags || []).join(';').replace(/"/g, '""')}"`,
-                `"${u.icon || ''}"`
-            ];
-            csvContent += row.join(',') + '\n';
-        });
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "users_data.csv";
-        link.click();
-        URL.revokeObjectURL(link.href);
-    };
-    const importFromCsv = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const text = e.target.result;
-                const newUsers = {};
-                const rows = text.split(/\r?\n/);
-                const headers = rows[0].trim().split(',').map(h => h.replace(/^"|"$/g, ''));
-                if (headers[0] !== 'id' || headers[1] !== 'name') throw new Error('CSVヘッダーが正しくありません (id,name,...)');
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i].trim() === '') continue;
-                    const columns = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                    if (columns.length < headers.length) continue; 
-                    const parsedCols = columns.map(col => col.replace(/^"|"$/g, '').replace(/""/g, '"'));
-                    const id = parsedCols[0];
-                    if (!id) continue;
-                    newUsers[id] = {
-                        name: parsedCols[1] || '',
-                        profile: (parsedCols[2] || '').replace(/\\n/g, '\n'),
-                        tags: parsedCols[3] ? parsedCols[3].split(';').filter(t => t) : [],
-                        icon: parsedCols[4] || ''
-                    };
-                }
-                if (Object.keys(newUsers).length > 0 && confirm(`${Object.keys(newUsers).length}件のデータで上書きしますか？(現在のデータは消去されます)`)) {
-                    users = newUsers;
-                    saveUsers();
-                    alert('データを更新しました。');
-                    renderUserList();
-                } else if (Object.keys(newUsers).length === 0) {
-                     alert('読み込める有効なデータがありませんでした。');
-                }
-            } catch (error) {
-                alert('CSVファイルの読み込みに失敗しました。\n' + error.message);
-            } finally {
-                event.target.value = '';
-            }
-        };
-        reader.readAsText(file, 'UTF-8');
-    };
-
-    // --- イベントリスナー設定 ---
-    const setupEventListeners = () => {
-        backButton.addEventListener('click', () => { window.location.href = 'index.html'; }); // 戻るボタンの機能を設定
-        adminModeButton.addEventListener('click', toggleAdminMode);
-        searchInput.addEventListener('input', (e) => renderUserList(e.target.value));
-
-        // 管理者メニュー
-        document.getElementById('add-user-button').addEventListener('click', () => { window.location.href = 'user_edit.html'; });
-        document.getElementById('export-csv-button').addEventListener('click', exportToCsv);
-        const importBtn = document.getElementById('import-csv-button');
-        const csvFileInput = document.getElementById('csv-file-input');
-        importBtn.addEventListener('click', () => csvFileInput.click());
-        csvFileInput.addEventListener('change', importFromCsv);
-        
-        // モーダル
-        modal.addEventListener('click', (e) => { if (e.target === modal) hideUserDetailModal(); });
-        document.getElementById('modal-close-btn').addEventListener('click', hideUserDetailModal);
-    };
-    
-    // --- 初期化処理 ---
-    const init = () => {
-        loadUsers();
-        renderUserList();
-        setupEventListeners();
-    };
-
+    const hideUserDetailModal = () => { modal.style.display = 'none'; };
+    const deleteUser = (id, name) => { if (confirm(`「${name}」さんの情報を削除しますか？この操作は元に戻せません。`)) { delete users[id]; saveUsers(); renderUserList(searchInput.value); } };
+    const toggleAdminMode = () => { if (isAdminMode) { isAdminMode = false; document.body.classList.remove('admin-mode'); adminModeButton.classList.remove('active'); adminModeButton.textContent = '管理者モード'; backButton.style.display = 'block'; } else { const input = prompt('合言葉を入力してください:'); if (input === ADMIN_PASSWORD) { isAdminMode = true; document.body.classList.add('admin-mode'); adminModeButton.classList.add('active'); adminModeButton.textContent = '管理者モード ON'; backButton.style.display = 'none'; } else if (input !== null && input !== '') { alert('合言葉が違います。'); } } };
+    const exportToCsv = () => { if (Object.keys(users).length === 0) { alert('書き出すデータがありません。'); return; } const headers = ['id', 'name', 'furigana', 'role', 'profile', 'tags', 'icon']; let csvContent = headers.join(',') + '\n'; Object.entries(users).forEach(([id, u]) => { const row = [ id, `"${(u.name || '').replace(/"/g, '""')}"`, `"${(u.furigana || '').replace(/"/g, '""')}"`, `"${(u.role || '').replace(/"/g, '""')}"`, `"${(u.profile || '').replace(/"/g, '""').replace(/\r?\n/g, '\\n')}"`, `"${(u.tags || []).join(';').replace(/"/g, '""')}"`, `"${u.icon || ''}"` ]; csvContent += row.join(',') + '\n'; }); const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "users_data.csv"; link.click(); URL.revokeObjectURL(link.href); };
+    const importFromCsv = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const text = e.target.result; const newUsers = {}; const rows = text.split(/\r?\n/); const headers = rows[0].trim().split(',').map(h => h.replace(/^"|"$/g, '')); if (headers.indexOf('role') === -1) { throw new Error('CSVヘッダーに role が見つかりません。'); } for (let i = 1; i < rows.length; i++) { if (rows[i].trim() === '') continue; const columns = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || []; if (columns.length === 0) continue; const userObj = {}; headers.forEach((header, index) => { if (index < columns.length) { const col = columns[index].replace(/^"|"$/g, '').replace(/""/g, '"'); if(header === 'tags') { userObj[header] = col ? col.split(';').filter(t => t) : []; } else if(header === 'profile') { userObj[header] = col.replace(/\\n/g, '\n'); } else { userObj[header] = col; } } }); const id = userObj.id; if (!id) continue; delete userObj.id; newUsers[id] = userObj; } if (Object.keys(newUsers).length > 0 && confirm(`${Object.keys(newUsers).length}件のデータで上書きしますか？(現在のデータは消去されます)`)) { users = newUsers; saveUsers(); alert('データを更新しました。'); renderUserList(); } else if (Object.keys(newUsers).length === 0) { alert('読み込める有効なデータがありませんでした。'); } } catch (error) { alert('CSVファイルの読み込みに失敗しました。\n' + error.message); } finally { event.target.value = ''; } }; reader.readAsText(file, 'UTF-8'); };
+    const setupEventListeners = () => { backButton.addEventListener('click', () => { window.location.href = 'index.html'; }); adminModeButton.addEventListener('click', toggleAdminMode); searchInput.addEventListener('input', (e) => renderUserList(e.target.value)); document.getElementById('add-user-button').addEventListener('click', () => { window.location.href = 'user_edit.html'; }); document.getElementById('export-csv-button').addEventListener('click', exportToCsv); const importBtn = document.getElementById('import-csv-button'); const csvFileInput = document.getElementById('csv-file-input'); importBtn.addEventListener('click', () => csvFileInput.click()); csvFileInput.addEventListener('change', importFromCsv); modal.addEventListener('click', (e) => { if (e.target === modal) hideUserDetailModal(); }); document.getElementById('modal-close-btn').addEventListener('click', hideUserDetailModal); };
+    const init = () => { loadUsers(); renderUserList(); setupEventListeners(); };
     init();
 });
 </script>
