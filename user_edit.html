@@ -65,10 +65,10 @@
             display: flex; flex-wrap: wrap; gap: 8px;
             margin-top: 10px; padding: 10px; border: 1px solid #ddd;
             border-radius: 8px; min-height: 40px;
-            cursor: text; /* コンテナ全体をクリックして入力できるように */
+            cursor: text;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        #tags-container:focus-within { /* 入力欄にフォーカスがある場合にコンテナのスタイルを変更 */
+        #tags-container:focus-within {
             outline: none; border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
         }
@@ -94,7 +94,7 @@
         .action-button:hover { opacity: 0.85; }
         #save-button { color: white; background-color: var(--success-color); }
         #delete-button {
-            display: none; /* 初期状態は非表示 */
+            display: none;
             color: white; background-color: var(--danger-color);
         }
     </style>
@@ -114,6 +114,14 @@
                 <input type="text" id="name-input" required>
             </div>
             <div class="form-group">
+                <label for="furigana-input">フリガナ</label>
+                <input type="text" id="furigana-input" placeholder="例：タナカ タロウ">
+            </div>
+            <div class="form-group">
+                <label for="role-input">役割/肩書き (一覧で表示されます)</label>
+                <input type="text" id="role-input" placeholder="例：看護師, 203号室 など">
+            </div>
+            <div class="form-group">
                 <label>アイコン</label>
                 <div id="icon-preview-wrapper">
                     <img id="icon-preview" alt="アイコンプレビュー">
@@ -126,7 +134,7 @@
                 <textarea id="profile-input" placeholder="自己紹介や特記事項などを入力"></textarea>
             </div>
             <div class="form-group">
-                <label for="tag-input">タグ (入力後Enterで追加)</label>
+                <label for="tag-input">タグ (補足情報など)</label>
                 <div id="tags-container">
                     <input type="text" id="tag-input" placeholder="タグを追加...">
                 </div>
@@ -140,7 +148,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 定数と状態変数 ---
     const ADMIN_PASSWORD = '5589374';
     const DEFAULT_ICON = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhdW2bw5XFelBMMNMSx4_PST670AxRputfVYU_24fkGYmNeXerrd48CYIgE70vrT711Lwa5Xlgk1DqRSGjxfTZgpq26ky_TV5BazG_rhuMGufQgFFTBJE30qt04EHrTMRe2FqemO0Bk-bM/s170/monster11.png';
     let users = JSON.parse(localStorage.getItem('app_users') || '{}');
@@ -150,9 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let iconDataUrl = DEFAULT_ICON;
     let tags = new Set();
 
-    // --- DOM要素 ---
     const pageTitle = document.getElementById('page-title');
     const nameInput = document.getElementById('name-input');
+    const furiganaInput = document.getElementById('furigana-input');
+    const roleInput = document.getElementById('role-input');
     const iconPreview = document.getElementById('icon-preview');
     const iconFileInput = document.getElementById('icon-file-input');
     const profileInput = document.getElementById('profile-input');
@@ -161,8 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userForm = document.getElementById('user-form');
     const deleteButton = document.getElementById('delete-button');
 
-    // --- 関数定義 ---
-    // ▼▼▼ 修正点: 「戻る」ボタンで必ず入居者一覧(users.html)に遷移するように設定 ▼▼▼
     const redirectToUserList = () => { window.location.href = 'users.html'; };
 
     const renderTags = () => {
@@ -201,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pageTitle.textContent = '入居者情報の編集';
         const user = users[userId];
         nameInput.value = user.name || '';
+        furiganaInput.value = user.furigana || '';
+        roleInput.value = user.role || '';
         profileInput.value = user.profile || '';
         iconDataUrl = user.icon || DEFAULT_ICON;
         iconPreview.src = iconDataUrl;
@@ -225,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const newUserId = isEditMode ? userId : 'user_' + Date.now();
         users[newUserId] = {
             name: newName,
+            furigana: furiganaInput.value.trim(),
+            role: roleInput.value.trim(),
             icon: iconDataUrl,
             profile: profileInput.value.trim(),
             tags: Array.from(tags)
@@ -246,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // --- イベントリスナー設定 ---
     document.getElementById('back-button').addEventListener('click', redirectToUserList);
     userForm.addEventListener('submit', handleFormSubmit);
     deleteButton.addEventListener('click', handleDelete);
@@ -279,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 初期化処理 ---
     const init = () => {
         if (isEditMode && !sessionStorage.getItem('admin_pass')) {
             const input = prompt('管理者確認のため、合言葉を入力してください。\n（削除ボタンを表示するために必要です）');
