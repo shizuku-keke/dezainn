@@ -19,6 +19,31 @@
         .photo-log { max-width: 100%; border-radius: 12px; }
         .system-message { width: 100%; text-align: center; margin: 10px 0 20px; }
         .system-message-bubble { display: inline-block; background-color: #d6e9f3; color: #555; font-size: 13px; padding: 5px 12px; border-radius: 15px; }
+        /* ▼▼▼ 変更箇所: 日付区切りと時刻表示のスタイルを追加 ▼▼▼ */
+        .date-divider {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .date-divider-bubble {
+            display: inline-block;
+            background-color: #d1eaff;
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 6px 15px;
+            border-radius: 15px;
+        }
+        .log-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .log-timestamp {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        /* ▲▲▲ 変更箇所 ▲▲▲ */
     </style>
 </head>
 <body>
@@ -54,12 +79,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const timeline = document.getElementById('timeline-container');
     const logKey = `chat_log_${chatId}`;
-    const logData = JSON.parse(localStorage.getItem(logKey)) || [];
+    const logData = JSON.parse(localStorage.getItem(logKey) || '[]');
     
     logData.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
     timeline.innerHTML = '';
 
+    // ▼▼▼ 変更箇所: 日付区切りと時刻表示のロジックを追加 ▼▼▼
+    let lastDateString = null;
+
     logData.forEach(logItem => {
+        const logDate = new Date(logItem.timestamp);
+        const yyyy = logDate.getFullYear();
+        const mm = logDate.getMonth() + 1;
+        const dd = logDate.getDate();
+        const currentDateString = `${yyyy}年${mm}月${dd}日`;
+
+        if (currentDateString !== lastDateString) {
+            const dateDivider = document.createElement('div');
+            dateDivider.className = 'date-divider';
+            dateDivider.innerHTML = `<span class="date-divider-bubble">${currentDateString}</span>`;
+            timeline.appendChild(dateDivider);
+            lastDateString = currentDateString;
+        }
+
         let itemDiv;
         if (logItem.type === 'system') {
             itemDiv = document.createElement('div');
@@ -68,13 +110,30 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const speaker = users[logItem.speakerId];
             if (!speaker) return;
+
             itemDiv = document.createElement('div');
             itemDiv.className = 'log-item';
-            const messageContent = logItem.type === 'text' ? `<div class="message-bubble">${logItem.content}</div>` : `<img src="${logItem.content}" alt="共有された写真" class="photo-log">`;
-            itemDiv.innerHTML = `<img src="${speaker.icon}" alt="${speaker.name}" class="speaker-icon"><div class="log-content"><div class="speaker-name">${speaker.name}</div>${messageContent}</div>`;
+            
+            const messageContent = logItem.type === 'text' ? 
+                `<div class="message-bubble">${logItem.content}</div>` : 
+                `<img src="${logItem.content}" alt="共有された写真" class="photo-log">`;
+
+            const hh = String(logDate.getHours()).padStart(2, '0');
+            const min = String(logDate.getMinutes()).padStart(2, '0');
+            const formattedTime = `${hh}:${min}`;
+            
+            itemDiv.innerHTML = `
+                <img src="${speaker.icon}" alt="${speaker.name}" class="speaker-icon">
+                <div class="log-content">
+                    <div class="speaker-name">${speaker.name}</div>
+                    ${messageContent}
+                    <div class="log-timestamp">${formattedTime}</div>
+                </div>
+            `;
         }
         timeline.appendChild(itemDiv);
     });
+    // ▲▲▲ 変更箇所 ▲▲▲
 
     timeline.scrollTop = timeline.scrollHeight;
 });
