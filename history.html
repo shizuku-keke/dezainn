@@ -12,7 +12,6 @@
     #back-button { background: none; border: none; font-size: 30px; cursor: pointer; color: #007bff; padding-right: 15px; }
     h1 { font-size: 24px; color: #333; }
     
-    /* ▼▼▼ 検索フォームのスタイルを追加 ▼▼▼ */
     .search-container { margin-bottom: 20px; }
     #search-input {
       width: 100%;
@@ -20,14 +19,13 @@
       font-size: 16px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      box-sizing: border-box; /* これによりpaddingがwidthに含まれる */
+      box-sizing: border-box;
     }
     #search-input:focus {
         border-color: #007bff;
         outline: none;
         box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     }
-    /* ▲▲▲ 検索フォームのスタイルを追加 ▲▲▲ */
 
     #history-list { display: flex; flex-direction: column; gap: 15px; }
     .history-item { display: flex; align-items: center; justify-content: space-between; padding: 20px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
@@ -37,17 +35,21 @@
     .member-icon { width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; margin-left: -12px; object-fit: cover; background-color: #ccc; }
     .member-icon:first-child { margin-left: 0; }
     .history-info { flex-grow: 1; overflow: hidden; }
-    .history-info .member-names { font-weight: bold; margin-bottom: 5px; }
-    .history-info .last-message-preview {
+    /* ▼▼▼ 変更箇所: 日時表示用のスタイルを追加 ▼▼▼ */
+    .history-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .member-names { font-weight: bold; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .last-updated-time { font-size: 12px; color: #888; flex-shrink: 0; padding-left: 10px; }
+    .last-message-preview {
       font-size: 14px;
       color: #666;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* ▲▲▲ 変更箇所 ▲▲▲ */
     .delete-button { background: none; border: none; font-size: 20px; color: #888; cursor: pointer; margin-left: 10px; }
     .delete-button:hover { color: #dc3545; }
-    #no-history, #no-results { text-align: center; color: #888; margin-top: 40px; } /* ▼▼▼ #no-results を追加 ▼▼▼ */
+    #no-history, #no-results { text-align: center; color: #888; margin-top: 40px; }
     #clear-history-button { margin: 30px auto 0; display: block; padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
   </style>
 </head>
@@ -58,17 +60,13 @@
       <h1>戻る</h1>
     </header>
     
-    <!-- ▼▼▼ 検索フォームを追加 ▼▼▼ -->
     <div class="search-container">
-      <input type="search" id="search-input" placeholder="参加者名やメッセージで検索...">
+      <input type="search" id="search-input" placeholder="参加者名、メッセージ、日付で検索...">
     </div>
-    <!-- ▲▲▲ 検索フォームを追加 ▲▲▲ -->
     
     <div id="history-list"></div>
     <p id="no-history" style="display: none;">まだ会話の記録がありません。</p>
-    <!-- ▼▼▼ 検索結果なしメッセージを追加 ▼▼▼ -->
     <p id="no-results" style="display: none;">一致する会話が見つかりませんでした。</p>
-    <!-- ▲▲▲ 検索結果なしメッセージを追加 ▲▲▲ -->
 
     <button id="clear-history-button">会話データをすべて削除</button>
   </div>
@@ -85,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyList = document.getElementById('history-list');
     const noHistoryMsg = document.getElementById('no-history');
     const clearHistoryBtn = document.getElementById('clear-history-button');
-    const searchContainer = document.querySelector('.search-container'); // ▼▼▼ 検索コンテナを取得 ▼▼▼
+    const searchContainer = document.querySelector('.search-container');
 
     document.getElementById('back-button').addEventListener('click', () => { window.location.href = 'index.html'; });
 
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (conversationList.length === 0) {
         noHistoryMsg.style.display = 'block';
         clearHistoryBtn.style.display = 'none';
-        searchContainer.style.display = 'none'; // ▼▼▼ 会話がない場合は検索バーも非表示に ▼▼▼
+        searchContainer.style.display = 'none';
         return;
     }
 
@@ -136,15 +134,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // ▼▼▼ 変更箇所: 日時表示と検索用データ生成 ▼▼▼
+        const lastUpdatedDate = new Date(lastUpdated);
+        const yyyy = lastUpdatedDate.getFullYear();
+        const mm = String(lastUpdatedDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(lastUpdatedDate.getDate()).padStart(2, '0');
+        const hh = String(lastUpdatedDate.getHours()).padStart(2, '0');
+        const min = String(lastUpdatedDate.getMinutes()).padStart(2, '0');
+        const formattedDateTime = `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+
+        const dateSearchFormats = [`${yyyy}-${mm}-${dd}`, `${yyyy}/${mm}/${dd}`, `${mm}/${dd}`, `${yyyy}年${mm}月${dd}日`, `${mm}月${dd}日`];
+        const searchableText = `${memberNames}さんの会話 ${previewText} ${dateSearchFormats.join(' ')}`;
+        item.setAttribute('data-search-text', searchableText);
+
         infoDiv.innerHTML = `
-          <div class="member-names">${memberNames}さんの会話</div>
+          <div class="history-meta">
+            <div class="member-names">${memberNames}さんの会話</div>
+            <div class="last-updated-time">${formattedDateTime}</div>
+          </div>
           <div class="last-message-preview">${previewText}</div>
         `;
-
-        // ▼▼▼ 検索用のテキストをdata属性として保存 ▼▼▼
-        const searchableText = `${memberNames}さんの会話 ${previewText}`;
-        item.setAttribute('data-search-text', searchableText);
-        // ▲▲▲ 検索用のテキストをdata属性として保存 ▲▲▲
+        // ▲▲▲ 変更箇所 ▲▲▲
 
         link.appendChild(iconsDiv);
         link.appendChild(infoDiv);
@@ -160,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             delete chatMeta[chatId];
             localStorage.setItem('chat_meta', JSON.stringify(chatMeta));
             item.remove();
-            // ▼▼▼ フィルタリング状態を更新 ▼▼▼
             filterConversations(); 
             if (Object.keys(chatMeta).length === 0) {
                 noHistoryMsg.style.display = 'block';
@@ -173,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         historyList.appendChild(item);
     });
 
-    // ▼▼▼ 検索機能のロジックを追加 ▼▼▼
     const searchInput = document.getElementById('search-input');
     const noResultsMsg = document.getElementById('no-results');
 
@@ -192,12 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // 検索結果が0件の場合にメッセージを表示
         noResultsMsg.style.display = (visibleCount === 0 && keyword !== '') ? 'block' : 'none';
     }
 
     searchInput.addEventListener('input', filterConversations);
-    // ▲▲▲ 検索機能のロジックを追加 ▲▲▲
 
     clearHistoryBtn.addEventListener('click', () => {
         if (!confirm('すべての会話記録を削除します。この操作は元に戻せません。よろしいですか？')) return;
