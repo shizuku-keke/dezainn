@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入居者情報システム</title>
+    <title>関係者情報システム</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <style>
         :root {
@@ -115,7 +115,7 @@
         <header class="header">
             <div class="header-left">
                 <button id="back-button" title="トップに戻る">‹</button>
-                <h1>入居者一覧</h1>
+                <h1>関係者一覧</h1>
             </div>
             <button id="admin-mode-button">管理者モード</button>
         </header>
@@ -162,6 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadUsers = () => { users = JSON.parse(localStorage.getItem('app_users') || '{}'); };
     const saveUsers = () => { localStorage.setItem('app_users', JSON.stringify(users)); };
 
+    // ★新設: 管理者モードのUI状態をまとめて更新する関数
+    const updateAdminUI = () => {
+        if (isAdminMode) {
+            document.body.classList.add('admin-mode');
+            adminModeButton.classList.add('active');
+            adminModeButton.textContent = '管理者モード ON';
+            backButton.style.display = 'none';
+        } else {
+            document.body.classList.remove('admin-mode');
+            adminModeButton.classList.remove('active');
+            adminModeButton.textContent = '管理者モード';
+            backButton.style.display = 'block';
+        }
+    };
+
     const renderUserList = (filterText = '') => {
         userListContainer.innerHTML = '';
         const lowerCaseFilter = filterText.toLowerCase();
@@ -176,8 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return nameMatch || furiganaMatch || roleMatch || tagMatch;
         });
 
-        if (Object.keys(users).length === 0) { statusMessage.textContent = 'まだ入居者情報が登録されていません。'; statusMessage.style.display = 'block'; }
-        else if (filteredUserIds.length === 0) { statusMessage.textContent = '該当する入居者が見つかりません。'; statusMessage.style.display = 'block'; }
+        if (Object.keys(users).length === 0) { statusMessage.textContent = 'まだ情報が登録されていません。'; statusMessage.style.display = 'block'; }
+        else if (filteredUserIds.length === 0) { statusMessage.textContent = '該当する方が見つかりません。'; statusMessage.style.display = 'block'; }
         else { statusMessage.style.display = 'none'; }
         
         filteredUserIds.sort((a, b) => {
@@ -236,11 +251,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const hideUserDetailModal = () => { modal.style.display = 'none'; };
     const deleteUser = (id, name) => { if (confirm(`「${name}」さんの情報を削除しますか？この操作は元に戻せません。`)) { delete users[id]; saveUsers(); renderUserList(searchInput.value); } };
-    const toggleAdminMode = () => { if (isAdminMode) { isAdminMode = false; document.body.classList.remove('admin-mode'); adminModeButton.classList.remove('active'); adminModeButton.textContent = '管理者モード'; backButton.style.display = 'block'; } else { const input = prompt('合言葉を入力してください:'); if (input === ADMIN_PASSWORD) { isAdminMode = true; document.body.classList.add('admin-mode'); adminModeButton.classList.add('active'); adminModeButton.textContent = '管理者モード ON'; backButton.style.display = 'none'; } else if (input !== null && input !== '') { alert('合言葉が違います。'); } } };
+    
+    // ★修正: 管理者モードのON/OFF時にセッションストレージを利用する
+    const toggleAdminMode = () => {
+        if (isAdminMode) {
+            isAdminMode = false;
+            sessionStorage.removeItem('isAdminMode'); // セッションから管理者状態を削除
+            updateAdminUI();
+            alert('管理者モードを終了しました。');
+        } else {
+            const input = prompt('合言葉を入力してください:');
+            if (input === ADMIN_PASSWORD) {
+                isAdminMode = true;
+                sessionStorage.setItem('isAdminMode', 'true'); // セッションに管理者状態を保存
+                updateAdminUI();
+            } else if (input !== null && input !== '') {
+                alert('合言葉が違います。');
+            }
+        }
+    };
+
     const exportToCsv = () => { if (Object.keys(users).length === 0) { alert('書き出すデータがありません。'); return; } const headers = ['id', 'name', 'furigana', 'role', 'profile', 'tags', 'icon']; let csvContent = headers.join(',') + '\n'; Object.entries(users).forEach(([id, u]) => { const row = [ id, `"${(u.name || '').replace(/"/g, '""')}"`, `"${(u.furigana || '').replace(/"/g, '""')}"`, `"${(u.role || '').replace(/"/g, '""')}"`, `"${(u.profile || '').replace(/"/g, '""').replace(/\r?\n/g, '\\n')}"`, `"${(u.tags || []).join(';').replace(/"/g, '""')}"`, `"${u.icon || ''}"` ]; csvContent += row.join(',') + '\n'; }); const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "users_data.csv"; link.click(); URL.revokeObjectURL(link.href); };
     const importFromCsv = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const text = e.target.result; const newUsers = {}; const rows = text.split(/\r?\n/); const headers = rows[0].trim().split(',').map(h => h.replace(/^"|"$/g, '')); if (headers.indexOf('role') === -1) { throw new Error('CSVヘッダーに role が見つかりません。'); } for (let i = 1; i < rows.length; i++) { if (rows[i].trim() === '') continue; const columns = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || []; if (columns.length === 0) continue; const userObj = {}; headers.forEach((header, index) => { if (index < columns.length) { const col = columns[index].replace(/^"|"$/g, '').replace(/""/g, '"'); if(header === 'tags') { userObj[header] = col ? col.split(';').filter(t => t) : []; } else if(header === 'profile') { userObj[header] = col.replace(/\\n/g, '\n'); } else { userObj[header] = col; } } }); const id = userObj.id; if (!id) continue; delete userObj.id; newUsers[id] = userObj; } if (Object.keys(newUsers).length > 0 && confirm(`${Object.keys(newUsers).length}件のデータで上書きしますか？(現在のデータは消去されます)`)) { users = newUsers; saveUsers(); alert('データを更新しました。'); renderUserList(); } else if (Object.keys(newUsers).length === 0) { alert('読み込める有効なデータがありませんでした。'); } } catch (error) { alert('CSVファイルの読み込みに失敗しました。\n' + error.message); } finally { event.target.value = ''; } }; reader.readAsText(file, 'UTF-8'); };
     const setupEventListeners = () => { backButton.addEventListener('click', () => { window.location.href = 'index.html'; }); adminModeButton.addEventListener('click', toggleAdminMode); searchInput.addEventListener('input', (e) => renderUserList(e.target.value)); document.getElementById('add-user-button').addEventListener('click', () => { window.location.href = 'user_edit.html'; }); document.getElementById('export-csv-button').addEventListener('click', exportToCsv); const importBtn = document.getElementById('import-csv-button'); const csvFileInput = document.getElementById('csv-file-input'); importBtn.addEventListener('click', () => csvFileInput.click()); csvFileInput.addEventListener('change', importFromCsv); modal.addEventListener('click', (e) => { if (e.target === modal) hideUserDetailModal(); }); document.getElementById('modal-close-btn').addEventListener('click', hideUserDetailModal); };
-    const init = () => { loadUsers(); renderUserList(); setupEventListeners(); };
+    
+    // ★修正: 初期化処理
+    const init = () => {
+        // ページ読み込み時にセッションストレージを確認し、管理者モードを復元
+        if (sessionStorage.getItem('isAdminMode') === 'true') {
+            isAdminMode = true;
+        }
+
+        loadUsers();
+        renderUserList();
+        setupEventListeners();
+        
+        // 復元した状態をUIに反映
+        updateAdminUI();
+    };
+
     init();
 });
 </script>
